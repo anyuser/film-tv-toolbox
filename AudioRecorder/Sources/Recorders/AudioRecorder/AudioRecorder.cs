@@ -54,7 +54,7 @@ namespace UnityEditor.Recorder
             try
             {
                 var path =  m_Settings.fileNameGenerator.BuildAbsolutePath(session);
-                m_Encoder = new WavEncoder(path);
+                m_Encoder = new WavEncoder(path,audioInput.sampleRate,audioInput.channelCount);
                 
                 return true;
             }
@@ -100,12 +100,15 @@ namespace UnityEditor.Recorder
 
     internal class WavEncoder
     {
-        
+        readonly int sampleRate;
+        readonly ushort numchannels;
         BinaryWriter _binwriter;
 
         // Use this for initialization
-        public WavEncoder (string filename)
+        public WavEncoder(string filename, int sampleRate, ushort numchannels)
         {
+            this.sampleRate = sampleRate;
+            this.numchannels = numchannels;
             var stream = new FileStream (filename, FileMode.Create);
             _binwriter = new BinaryWriter (stream);
             for(int n = 0; n < 44; n++)
@@ -117,9 +120,7 @@ namespace UnityEditor.Recorder
             var closewriter = _binwriter;
             _binwriter = null;
             int subformat = 3; // float
-            int numchannels = AudioSettings.speakerMode == AudioSpeakerMode.Mono ? 1 : 2;
             int numbits = 32;
-            int samplerate = AudioSettings.outputSampleRate;
             
             if (Options.verboseMode)
                 Debug.Log ("Closing file");
